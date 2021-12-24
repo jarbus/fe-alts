@@ -154,8 +154,6 @@ services:
     container_name: scribe
     build: ./dockerfiles/scribe
     image: scribe:alternative
-    volumes:
-      - db:/home/node/app/db
     ports:
       - "8081:8080"
     healthcheck:
