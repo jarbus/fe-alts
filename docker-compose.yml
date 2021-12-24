@@ -1,0 +1,201 @@
+version: "3.8"
+
+volumes:
+  bibliogram-db:
+  postgresdata: # Caching
+  teddit-pic-cache:
+  teddit-vid-cache:
+
+networks:
+  invidious: # Invidious-Postgres
+  teddit-redis:
+  nitter-redis: 
+
+services:
+  alternative-cache-redis:
+    container_name: alternative-cache-redis
+    image: redis:6.2.5-alpine
+    networks:
+      - teddit-redis
+      - nitter-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1m
+      start_period: 20s
+      timeout: 3s
+    read_only: true
+    user: redis
+    mem_limit: 2G # This is estimated - change as needed.
+    memswap_limit: 4G
+    security_opt:
+      - no-new-privileges
+  
+  teddit:
+    container_name: teddit
+    build: ./dockerfiles/teddit
+    image: teddit:alternative
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=alternative-cache-redis
+    volumes:
+      # TODO: Impose size restrictions and configure it in teddit
+      - teddit-pic-cache:/teddit/static/pics
+      - teddit-vid-cache:/teddit/static/vids
+    ports:
+      - "8080:8080"
+    networks:
+      - teddit-redis
+    depends_on:
+      - alternative-cache-redis
+    healthcheck:
+      test: ["CMD", "wget" ,"--no-verbose", "--tries=1", "--spider", "http://localhost:8080/about"]
+      interval: 1m
+      start_period: 20s
+      timeout: 3s
+      retries: 2
+    read_only: true
+    mem_limit: 300M
+    memswap_limit: 1G
+    security_opt:
+      - no-new-privileges
+
+  bibliogram:
+    container_name: bibliogram
+    build: ./dockerfiles/bibliogram
+    image: bibliogram:alternative
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - bibliogram-db:/home/node/app/db
+    ports:
+      - "10407:10407"
+    healthcheck:
+      test: ["CMD", "wget" ,"--no-verbose", "--tries=1", "--spider", "http://localhost:10407"]
+      interval: 1m
+      start_period: 20s
+      timeout: 3s
+      retries: 2
+    read_only: true
+    pids_limit: 50
+    mem_limit: 300M
+    memswap_limit: 1G
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges
+      
+  invidious-postgres:
+    container_name: invidious-postgres
+    build: ./dockerfiles/invidious_postgres
+    image: postgres:invidious
+    restart: unless-stopped
+    networks:
+      - invidious
+    volumes:
+      - postgresdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: invidious
+      POSTGRES_USER: kemal
+      POSTGRES_PASSWORD: kemal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 1m
+      start_period: 20s
+      timeout: 3s
+    read_only: true
+    tmpfs:
+      # For read-only filesystem issues.
+      - /tmp
+      - /run/postgresql
+    user: postgres
+    mem_limit: 2G # This is estimated - change as needed.
+    memswap_limit: 4G
+    security_opt:
+      - no-new-privileges
+
+  invidious:
+    container_name: invidious
+    image: quay.io/invidious/invidious:latest
+    restart: unless-stopped
+    networks:
+      - invidious
+    mem_limit: 1G
+    memswap_limit: 2G
+    cpus: 0.5
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      INVIDIOUS_CONFIG: |
+        channel_threads: 1
+        check_tables: true
+        feed_threads: 1
+        db:
+          dbname: invidious
+          user: kemal
+          password: kemal
+          host: invidious-postgres
+          port: 5432
+        full_refresh: false
+        https_only: false
+        domain:
+    healthcheck:
+      test: wget -nv --tries=1 --spider http://127.0.0.1:3000/api/v1/comments/jNQXAC9IVRw || exit 1
+      interval: 1m
+      start_period: 40s
+      timeout: 5s
+      retries: 2
+    depends_on:
+      - invidious-postgres
+    read_only: true
+    security_opt:
+      - no-new-privileges
+
+  scribe:
+    container_name: scribe
+    build: ./dockerfiles/scribe
+    image: scribe:alternative
+    volumes:
+      - db:/home/node/app/db
+    ports:
+      - "8081:8080"
+    healthcheck:
+      test: ["CMD", "wget" ,"--no-verbose", "--tries=1", "--spider", "http://localhost:8080"]
+      start_period: 20s
+      interval: 1m
+      timeout: 3s
+    read_only: true
+    mem_limit: 100M
+    memswap_limit: 256M
+    security_opt:
+      - no-new-privileges
+
+  nitter:
+    container_name: nitter
+    build: ./dockerfiles/nitter
+    image: nitter:alternative
+    ports:
+      - "8082:8080"
+    depends_on:
+      - alternative-cache-redis
+    healthcheck:
+      test: ["CMD", "wget" ,"--no-verbose", "--tries=1", "--spider", "http://localhost:8080"]
+      interval: 1m
+      start_period: 20s
+      timeout: 3s
+    networks:
+      - nitter-redis
+    mem_limit: 100M
+    memswap_limit: 256M
+    security_opt:
+      - no-new-privileges
+    read_only: true
+
+  # Uncomment only if you know the consequences of exposing docker.sock
+  # autoheal:
+  #   restart: unless-stopped
+  #   image: willfarrell/autoheal
+  #   environment:
+  #     - AUTOHEAL_CONTAINER_LABEL=all
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   read_only: true
