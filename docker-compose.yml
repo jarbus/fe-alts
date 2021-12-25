@@ -9,7 +9,7 @@ volumes:
 networks:
   invidious: # Invidious-Postgres
   teddit-redis:
-  nitter-redis: 
+  nitter-redis:
 
 services:
   alternative-cache-redis:
@@ -29,7 +29,7 @@ services:
     memswap_limit: 4G
     security_opt:
       - no-new-privileges
-  
+
   teddit:
     container_name: teddit
     build: ./dockerfiles/teddit
@@ -37,10 +37,16 @@ services:
     environment:
       - NODE_ENV=production
       - REDIS_HOST=alternative-cache-redis
+      - DOMAIN=teddit.your-domain.com
+      - USE_HELMET=true
+      - USE_HELMET_HSTS=true
+      - TRUST_PROXY=true
+      - VIDEO_ENABLED=true
     volumes:
       # TODO: Impose size restrictions and configure it in teddit
       - teddit-pic-cache:/teddit/static/pics
       - teddit-vid-cache:/teddit/static/vids
+
     ports:
       - "8080:8080"
     networks:
@@ -83,7 +89,7 @@ services:
       - ALL
     security_opt:
       - no-new-privileges
-      
+
   invidious-postgres:
     container_name: invidious-postgres
     build: ./dockerfiles/invidious_postgres
