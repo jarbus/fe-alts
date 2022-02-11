@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>fe-alts forward</title>
+<style>
+h1 {
+text-align: center;
+color: white;
+font-size: 72px;
+}
+html, body {
+height: 100%;
+min-height: 100%;
+}
+body {
+margin: 0;
+background-color: #333;
+}
+.tableBar {
+display: table;
+width: 100%;
+}
+.tableDivision {
+display: table-cell;
+vertical-align: middle;
+}
+input, button {
+margin: 0;
+border: 0;
+background-color: transparent;
+color: #333;
+font-family: sans-serif;
+padding: 0;
+}
+.top {
+position: absolute;
+top: 50%;
+border-radius: 20px;
+transform: scale(0.6);
+margin: -83px auto 0 auto;
+background-color: white;
+left: 0;
+right: 0;
+width: 550px;
+box-shadow: 0 10px 40px darkgrey, 0 0 0 20px darkgrey;
+padding: 35px;
+}
+form {
+height: 96px;
+}
+input[type="text"] {
+font-size: 60px;
+line-height: 1;
+width: 100%;
+height: 96px;
+}
+input[type="text"]::placeholder {
+color: #333;
+}
+
+span {
+position: absolute;
+top: 68px;
+border-radius: 10px;
+transform: rotateZ(52deg);
+transition: 0.5s ease all;
+width: 45px;
+left: 43px;
+display: block;
+height: 15px;
+background-color: transparent;
+display: block;
+}
+* {
+outline: none;
+}
+</style>
+</head>
+<body>
+<h1>Enter a Medium, Twitter, YouTube, Reddit, or Instagram Url</h1>
+<div class="top">
+<label for="fname"></label><br>
+<form method="post" action="/">
+<div class="tableBar">
+<div class="tableDivision">
+<input type="text" name="website" id="name" placeholder="url" required>
+</div>
+</div>
+</form>
+</div>
+</body>
+</html>

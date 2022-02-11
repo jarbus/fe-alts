@@ -90,6 +90,20 @@ services:
     security_opt:
       - no-new-privileges
 
+  forward:
+    container_name: forward
+    build: ./dockerfiles/forward
+    image: forward:latest
+    restart: unless-stopped
+    ports:
+      - "8084:8081"
+    environment:
+      - SCRIBE_URL=scribe.your-domain.com
+      - NITTER_URL=nitter.your-domain.com
+      - TEDDIT_URL=teddit.your-domain.com
+      - INVIDIOUS_URL=invidious.your-domain.com
+      - BIBLIOGRAM_URL=bilbio.your-domain.com
+
   invidious-postgres:
     container_name: invidious-postgres
     build: ./dockerfiles/invidious_postgres
