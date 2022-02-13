@@ -11,6 +11,8 @@ This repository is designed to make it dead-simple to host alternative front end
  - [Invidious (Invidious)](https://github.com/iv-org/invidious)
  - [Nitter (Nitter)](https://github.com/zedeus/nitter)
 
+In addition, fe-alts includes a service dubbed "Forward", which simplifies redirecting urls to their respective front-ends. Either append the url to the forward url, such as `forward.your-domain.com/twitter.com/snowden`, or go to `forward.your-domain.com` and enter the url in the search box, to be automatically redirected to the proper alternative front-end. This is especially helpful on mobile, where manually editing urls can be a pain.
+
 # Installation
 
 1. Follow installation steps for [Docker-Compose](https://docs.docker.com/compose/install/), if not already installed.
@@ -24,9 +26,10 @@ These are the ports each front-end is hosted on by default.
 
 - Bibliogram (Instagram): 10407
 - Invidious (Youtube): 3000
-- Nitter (Twitter): 8082
-- Scribe (Medium): 8081
 - Teddit (Reddit): 8080
+- Scribe (Medium): 8081
+- Nitter (Twitter): 8082
+- Forward: 8084
 
 To visit, go to localhost:PORT on the machine running the docker containers, or IP:PORT if connecting from another machine on the same network, where IP is the local IP of the host machine.
 
@@ -39,7 +42,7 @@ For example, `/etc/nginx/conf.d/teddit.conf`[:
 ```
 server {
     listen 443 ssl;
-    server_name teddit.yourdomain.com;
+    server_name teddit.your-domain.com;
 
     location / {
         proxy_pass http://127.0.0.1:8080;
