@@ -40,12 +40,14 @@ func insta2biblio(url string, insta_pattern string) string {
 }
 
 var url_pairs = map[string]func(string, string)string{
-    "medium.com":     medium2scribe,
-    "twitter.com":    twitter2nitter,
- // "t.co":         twitter2nitter,
-    "reddit.com":     reddit2teddit,
-    "youtube.com":    youtube2invidious,
-    "instagram.com":  insta2biblio,
+    "medium.com":            medium2scribe,
+    "mobile.twitter.com":    twitter2nitter,
+    "twitter.com":           twitter2nitter,
+    "reddit.com":            reddit2teddit,
+    "t.co":                  twitter2nitter,
+    "m.youtube.com":         youtube2invidious,
+    "youtube.com":           youtube2invidious,
+    "instagram.com":         insta2biblio,
 }
 
 
